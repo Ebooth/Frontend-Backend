@@ -1,0 +1,265 @@
+<style>
+#paragraphes p:hover{cursor:pointer;border:1px solid black;}
+textarea{display:block;width:100%;}
+
+#paragraphes div {position:relative;}
+.poignee{position:absolute;left:0px;cursor:move;}
+#paragraphes div {padding-left:20px;}
+
+.emplacement{background-color:lightgrey;border:1px solid black;height:25px;width:100%;}
+
+</style>
+
+<link href="css/ui-darkness/jquery-ui-1.9.2.custom.css" rel="stylesheet">
+<script src="js/jquery-1.8.3.js" ></script>
+<script src="js/jquery-ui-1.9.2.custom.js"></script>
+
+<script>
+
+$(document).on(	"keyup",
+								"body",
+								function(leContexe){
+	// console.log(leContexe);
+	// Appui sur ESC 
+	if(leContexe.key == "Escape" ) {
+		//TODO : parcourir tous les textarea, les annuler 
+		// Pour chacun d'eux, récupérer le contenu initial 
+		// replacer dans le DOM un P avec ce contenu 
+		// utiliser .each() 
+		$("#paragraphes textarea").each(function(){
+			// Annuler l'édition en cours 
+			// $(this) dénote à chaque itération une référence vers l'un des textarea
+			
+			var contenuPrecedent = $(this).data("contenu");
+			var metaT = $(this).data(); 
+			var jP = $("<p>").html(contenuPrecedent).data(metaT);
+			$(this).replaceWith(jP);
+		});
+	}
+});
+
+$(document).on(	"click",
+								"#paragraphes p", 
+								function (){
+	// clic sur un futur P. 
+	var contenuP = $(this).html();
+	var metaP =  $(this).data(); 
+	// préparer le futur textarea
+	var jT = $("<textarea>")
+						.val(contenuP)
+						.data(metaP);  
+
+	// insertion dans le DOM 
+	$(this).replaceWith(jT);
+});
+
+$(document).on(	"keydown",
+								"#paragraphes textarea",
+								function(leContexe){
+	// Validation d'une saisie
+	if(leContexe.which == 13 ) {
+		// On prépare le nouveau P.
+		var contenuT = $(this).val();
+		var metaT = $(this).data(); 
+		var jP = $("<p>").html(contenuT).data(metaT);
+
+		// On met à jour ses méta-données 
+		// car le contenu a changé
+		jP.data("contenu",contenuT);
+	
+		//On envoie une requete au serveur 
+		$.getJSON(	"data.php", 
+								{	"action" : "updateP", 
+									"id": metaT.id, 
+									"contenu" : contenuT}, 
+								function (oRep){
+			if (oRep.feedback!="ok") {
+				alert("Rechargez votre navigateur...");
+			}
+		});
+
+		// On l'insère 
+		$(this).replaceWith(jP);
+	}
+});
+
+
+
+
+
+
+
+// TODO: afficher dans la console les méta-données
+// lors du survol des P.  
+$(document).on(	"mouseover",
+								"#paragraphes div p, #paragraphes div textarea",
+								function(){
+	// Survol d'un elt dans le div des p. 
+	// $(this) dénote l'élément manipulé 
+	// On affiche ses méta-données 
+	console.log($(this).data());
+});
+
+// TODO: ne pas perdre les méta-données des P. en cours d'édition 
+// TODO : envoyer une requete de mise à jour lors de la modification d'un P. 
+// TODO UX : permettre une annulation des éditions en cours
+// lors de l'appui sur ESC, on annule toutes les éditions
+// en replacant les contenus initiaux dans chaque P. en cours d'édition [besoin éventuel de l'itérateur .each()]
+
+$(document).ready(function(){
+
+	// Envoyer une requete au serveur pour récupérer les P. 
+	// en base de données 
+	$.getJSON(	"data.php",
+							{"action":"getP"},
+							function (oRep){
+
+/* {"feedback":"ok","paragraphes":[{"id":"1","contenu":"premier","ordre":"1"},...]} */
+		console.log(oRep);
+		
+		if (oRep.feedback != "ok") {
+			alert("Erreur, veuillez recharger votre navigateur");
+		} else {
+			// on les intègre au div des paragraphes 
+			for(i=0;i<oRep.paragraphes.length;i++) {
+				// oRep.paragraphes[i] contient les méta-données
+				// du paragraphe i : id, contenu, ordre 
+				// TODO: insérer les P. 
+				var jP = $("<p>")
+									.html(oRep.paragraphes[i].contenu);
+				// ON change la structure... <div><span><p>
+				var jS = $("<div><span class=\"poignee ui-icon ui-icon-triangle-2-n-s\"></span></div>");
+				jS.append(jP);
+				$("#paragraphes").append(jS);
+
+				// TODO: y associer leurs méta-données 
+				jP.data(oRep.paragraphes[i]);
+
+//			jP.data("id",oRep.paragraphes[i].id);
+//			jP.data("contenu",oRep.paragraphes[i].contenu);
+//			jP.data("ordre",oRep.paragraphes[i].ordre);
+			}
+		}
+	}); 
+
+
+	// Insérer un bouton + avant le div des paragraphes
+	var jP = $("<input type='button'/>")
+						.val("+")
+						.click(function(){
+		// Ordre du futur P. ? 
+		// ordre du premier des P. actuels - 1
+		var jPremier = $("#paragraphes *:first-child");
+		// $("#paragraphes *").first()		
+		// $("#paragraphes *:first-child"); 
+		// ATTENTION AUX PERFORMANCES !
+		var ordreNouveau = jPremier.data("ordre") - 1;
+		// Attention au cas avec '+' : il faut vérifier 
+		// les types des éléments : 
+		// "1" +1  vaut "11"!!
+
+		// Lors du clic sur un bouton, 
+		// On insère le P. dans le DOM 
+		var contenu = $(this).next().val();
+		var jP = $("<p>")
+							.html(contenu)
+							.data({	"id" : 0, 
+											"ordre" : ordreNouveau, 
+											"contenu" : contenu });
+
+		// ON change la structure... <div><span><p>
+		var jS = $("<div><span class=\"poignee ui-icon ui-icon-triangle-2-n-s\"></span></div>");
+		jS.append(jP);
+		$("#paragraphes").prepend(jS);
+
+		// On envoie une req. de création au serveur 
+		// CONTRAINTE : permettre plusieurs ajouts à la fois 
+		// => pas de var. globale ! 
+
+/*	SOL 1: on associe un "contexte" à la fonction ajax
+		$.ajax({
+			url : "data.php",
+			data : {	"action":"addP",
+								"ordre": ordreNouveau, 
+								"contenu" : contenu}, 
+			dataType:"json",	// nature de la réponse attendue du serveur 
+			method:"GET",
+			context:jP,
+			success: function (oRep){
+				// On utilise l'id contenu dans la réponse 
+				// pour l'associer au P. inséré dans le DOM			
+				// $(this) dénote le contexte défini lors de l'appel de la requete
+				$(this).data("id",oRep.id);
+			}			
+		}); 
+*/
+
+		// SOL2 : on utilise un appel à $.getJSON
+		// comme jP est dans le scope de la fonction de rappel
+		// On peut s'en servir pour modifier le P. adéquat
+		// jP.html(oRep.id); 
+		$.getJSON(	"data.php", 
+								{	"action":"addP",
+									"ordre": ordreNouveau, 
+									"contenu" : contenu}, 
+								function (oRep) {
+			jP.data("id",oRep.id);
+		}
+); 
+
+	}); 
+
+	// insertion bouton avant paragraphes
+	$("#paragraphes").before(jP);
+	// On pourrait cloner avec .clone()
+
+	// insertion champ entrée texte apres bouton 
+	jP.after("<input type='text' />");
+	
+}); 
+
+$(document).ready(function(){
+	// Attention : un clic pour déplacer reste un clic sur un P. (permettant d'éditer) 
+	// => On change la structure 
+	// 	<div>
+	//		<span>poignee</span>
+	//		<p>contenu</p>
+	//	</div>
+	$("#paragraphes").sortable({	handle: ".poignee", 
+																helper: "clone", 
+																placeholder: "emplacement", 
+																stop: function( event, ui ) {
+				console.log("id de l'item modifie : ");
+				console.log($("p",ui.item).data("id"));
+
+				console.log("ordre de l'element precedent : ");
+				console.log($("p",ui.item.prev()).data("ordre"));
+
+				console.log("ordre de l'element suivant : ");
+				console.log($("p",ui.item.next()).data("ordre"));
+				
+			
+		}
+	});
+	$("#paragraphes").disableSelection(); 
+		// Interdit la sélection de texte à la souris
+});
+
+</script>
+<!-- TODO 
+Télécharger jQuery UI 
+Charger la lib. JQUERY dans le code de votre exercice 
+ATTENTION : utiliser la librairie JQUERY fournie lors du téléchargement de JQUERY UI 
+
+Associer une "poignée" à chaque paragraphe 
+QUELLE STRUCTURE pour le glisser-déposer ? 
+=> <div><span class="ui-icon ui-icon-triangle-2-n-s"></span> <p> </p> </div>
+
+Permettre le "tri" du paragraphe (opération de type glisser-déposer)
+uniquement lorsque l'on se sert de la poignée
+-->
+<body>
+<div id="paragraphes">
+
+</div>
+</body>
