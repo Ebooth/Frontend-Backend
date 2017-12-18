@@ -1,4 +1,52 @@
 <style>
+/* #menuDeroulant */
+@import "compass/css3";
+/* Setting things up */
+body {
+  padding: 2em;
+}
+a {
+  text-decoration: none;
+  color: #fff;
+}
+
+/* Important stuff */
+
+nav {
+  position: relative;
+}
+
+.menuDeroulant {
+  padding: .5em 1em;
+  background: #777;
+  border-radius: .2em .2em 0 0;
+}
+
+ul.listeArticles {
+  /*display:none;*/
+  position: absolute;
+  top: 100%;
+  margin-top: .5em;
+  background: #777;
+  min-width: 12em;
+  padding: 0;
+  border-radius: 0 0 .2em .2em;
+    li {
+      list-style-type: none;
+      a {
+        text-decoration: none;
+        padding: .5em 1em;
+        display: block;
+      }
+   }
+}
+
+.nouvelArticle {display:flex;}
+.nouvelArticle :first-child {/*display:none;*/}
+.nouvelArticle :nth-child(2) {/*display:none;*/
+	flex:1;}
+
+
 #paragraphes p:hover{cursor:pointer;border:1px solid black;}
 textarea{display:block;width:100%;}
 
@@ -142,6 +190,12 @@ $(document).ready(function(){
 		}
 	}); 
 
+	// Insérer un bouton Search à côté de la barre de recherche pour afficher le menu déroulant et les articles déjà présents
+	// var btnAfficherArticles = $("<input type='button'/>")
+	// 					.val("Search")
+	// 					.click(function(){
+	// 						// TODO
+	// 					});
 
 	// Insérer un bouton + avant le div des paragraphes
 	var jP = $("<input type='button'/>")
@@ -174,25 +228,7 @@ $(document).ready(function(){
 
 		// On envoie une req. de création au serveur 
 		// CONTRAINTE : permettre plusieurs ajouts à la fois 
-		// => pas de var. globale ! 
-
-/*	SOL 1: on associe un "contexte" à la fonction ajax
-		$.ajax({
-			url : "data.php",
-			data : {	"action":"addP",
-								"ordre": ordreNouveau, 
-								"contenu" : contenu}, 
-			dataType:"json",	// nature de la réponse attendue du serveur 
-			method:"GET",
-			context:jP,
-			success: function (oRep){
-				// On utilise l'id contenu dans la réponse 
-				// pour l'associer au P. inséré dans le DOM			
-				// $(this) dénote le contexte défini lors de l'appel de la requete
-				$(this).data("id",oRep.id);
-			}			
-		}); 
-*/
+		// => pas de var. globale !
 
 		// SOL2 : on utilise un appel à $.getJSON
 		// comme jP est dans le scope de la fonction de rappel
@@ -207,7 +243,13 @@ $(document).ready(function(){
 		}
 ); 
 
-	}); 
+	});
+
+	// // Mise de  la barre de recherche et du bouton 'Search' dans le div menuDeroulant
+	// $("#menuDeroulant").prepend(btnAfficherArticles);			
+
+	// // insertion bouton search avant 
+	// btnAfficherArticles.before("<input type='text' value='Rechercher article'/>");
 
 	// insertion bouton avant paragraphes
 	$("#paragraphes").before(jP);
@@ -216,7 +258,40 @@ $(document).ready(function(){
 	// insertion champ entrée texte apres bouton 
 	jP.after("<input type='text' />");
 	
-}); 
+});
+
+$(function() {
+  
+// Fonctiion d'affichage des articles quand bouton cliqué
+$('.menuDeroulant').click(function(){
+	// TODO fonction dejean qui va chercher les titres d'articles et les mets dans une div '.listArticles' selon <li><a id='MenuItem'>Menu Item</a></li>
+	// Bien écrire les id
+	//$(this).next('.menuDeroulant').toggle();
+	$('.nouvelArticle').toggle();
+	$('.listeArticles').toggle();
+});
+
+$(document).click(function(e) {
+	// Gestionnaire d'événements
+
+	// cache le menu déroulant
+  var target = e.target;
+  if (!$(target).is('.menuDeroulant') && !$(target).parents().is('.menuDeroulant')) {
+    $('.listeArticles').hide();
+    $('.nouvelArticle').hide();
+  }
+
+  console.log(target.parent());
+  // Affichage de l'article sur lequel on clique
+  if ($(target).parent().parent().is('.listeArticles')) {
+  	// Affichage de l'article ayant comme id target.id
+  	alert(target.id);
+  }
+});
+
+
+
+});
 
 $(document).ready(function(){
 	// Attention : un clic pour déplacer reste un clic sur un P. (permettant d'éditer) 
@@ -233,6 +308,7 @@ $(document).ready(function(){
 				console.log($("p",ui.item).data("id"));
 
 				console.log("ordre de l'element precedent : ");
+
 				console.log($("p",ui.item.prev()).data("ordre"));
 
 				console.log("ordre de l'element suivant : ");
@@ -259,7 +335,25 @@ Permettre le "tri" du paragraphe (opération de type glisser-déposer)
 uniquement lorsque l'on se sert de la poignée
 -->
 <body>
-<div id="paragraphes">
-
+<div>
+<nav>
+<a class="menuDeroulant" href="#" title="afficherArticle">Afficher Article</a>
+	<div class="nouvelArticle">
+		<input type='textarea' id='titreNouvelArticle' value='Nouvel Article' />
+		<input type='button' id='btnAjoutArticle' value='Ajouter Article' />
+	</div>
+	<!-- TODO : créer listeArticle automatiquement -->
+	<ul class="listeArticles">
+	  <li><a id='menuItem'>Menu Item</a></li>
+	  <li><a href="#">Menu</a></li>
+	  <li><a href="#">Settings</a></li>
+	  <li><a href="#">Search</a></li>
+	</ul>
+</nav>
 </div>
+
+
+<!-- 
+	<div id="paragraphes">
+	</div> -->
 </body>
