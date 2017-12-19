@@ -1,0 +1,60 @@
+/* #menuDeroulant */
+@import "compass/css3";
+
+/* Setting things up */
+body {
+  padding: 2em;
+}
+a {
+  text-decoration: none;
+  color: #fff;
+}
+
+/*.relatifAuxArticles {display: flex;flex-direction:column;}*/
+
+/* Important stuff */
+
+nav {
+  position: relative;
+}
+.menuDeroulant {
+  padding: .5em 1em;
+  background: #777;
+  border-radius: .2em .2em 0 0;
+}
+ul.listeArticles {
+  display:none;
+  position: absolute;
+  top: 100%;
+  margin-top: .5em;
+  background: #777;
+  min-width: 12em;
+  padding: 0;
+  border-radius: 0 0 .2em .2em;
+    li {
+      list-style-type: none;
+      a {
+        text-decoration: none;
+        padding: .5em 1em;
+        display: block;
+      }
+   }
+}
+
+.relatifAuxArticles {display: flex;
+	flex-direction: column;}
+
+.nouvelArticle {display:flex;}
+.nouvelArticle :first-child {/*display:none;*/}
+.nouvelArticle :nth-child(2) {/*display:none;*/
+	flex:1;}
+
+
+#paragraphes p:hover{cursor:pointer;border:1px solid black;}
+textarea{display:block;width:100%;}
+
+#paragraphes div {position:relative;}
+.poignee{position:absolute;left:0px;cursor:move;}
+#paragraphes div {padding-left:20px;}
+
+.emplacement{background-color:lightgrey;border:1px solid black;height:25px;width:100%;}
