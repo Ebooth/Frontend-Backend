@@ -1,6 +1,7 @@
 <style>
 /* #menuDeroulant */
 @import "compass/css3";
+
 /* Setting things up */
 body {
   padding: 2em;
@@ -10,20 +11,20 @@ a {
   color: #fff;
 }
 
+/*.relatifAuxArticles {display: flex;flex-direction:column;}*/
+
 /* Important stuff */
 
 nav {
   position: relative;
 }
-
 .menuDeroulant {
   padding: .5em 1em;
   background: #777;
   border-radius: .2em .2em 0 0;
 }
-
 ul.listeArticles {
-  /*display:none;*/
+  display:none;
   position: absolute;
   top: 100%;
   margin-top: .5em;
@@ -40,6 +41,9 @@ ul.listeArticles {
       }
    }
 }
+
+.relatifAuxArticles {display: flex;
+	flex-direction: column;}
 
 .nouvelArticle {display:flex;}
 .nouvelArticle :first-child {/*display:none;*/}
@@ -64,6 +68,8 @@ textarea{display:block;width:100%;}
 
 <script>
 
+var lecture = 1;
+
 $(document).on(	"keyup",
 								"body",
 								function(leContexe){
@@ -87,8 +93,9 @@ $(document).on(	"keyup",
 });
 
 $(document).on(	"click",
-								"#paragraphes p", 
-								function (){
+				"#paragraphes p",
+				function (){
+	if (!lecture){
 	// clic sur un futur P. 
 	var contenuP = $(this).html();
 	var metaP =  $(this).data(); 
@@ -99,11 +106,12 @@ $(document).on(	"click",
 
 	// insertion dans le DOM 
 	$(this).replaceWith(jT);
+	}
 });
 
 $(document).on(	"keydown",
-								"#paragraphes textarea",
-								function(leContexe){
+				"#paragraphes textarea",
+				function(leContexe){
 	// Validation d'une saisie
 	if(leContexe.which == 13 ) {
 		// On prépare le nouveau P.
@@ -132,16 +140,11 @@ $(document).on(	"keydown",
 });
 
 
-
-
-
-
-
 // TODO: afficher dans la console les méta-données
 // lors du survol des P.  
 $(document).on(	"mouseover",
-								"#paragraphes div p, #paragraphes div textarea",
-								function(){
+				"#paragraphes div p, #paragraphes div textarea",
+				function(){
 	// Survol d'un elt dans le div des p. 
 	// $(this) dénote l'élément manipulé 
 	// On affiche ses méta-données 
@@ -154,7 +157,8 @@ $(document).on(	"mouseover",
 // lors de l'appui sur ESC, on annule toutes les éditions
 // en replacant les contenus initiaux dans chaque P. en cours d'édition [besoin éventuel de l'itérateur .each()]
 
-$(document).ready(function(){
+
+function afficherModeEdition() {
 
 	// Envoyer une requete au serveur pour récupérer les P. 
 	// en base de données 
@@ -190,15 +194,8 @@ $(document).ready(function(){
 		}
 	}); 
 
-	// Insérer un bouton Search à côté de la barre de recherche pour afficher le menu déroulant et les articles déjà présents
-	// var btnAfficherArticles = $("<input type='button'/>")
-	// 					.val("Search")
-	// 					.click(function(){
-	// 						// TODO
-	// 					});
-
 	// Insérer un bouton + avant le div des paragraphes
-	var jP = $("<input type='button'/>")
+	var btnAjouterParagraphe = $("<input type='button' class='dansBarreEdition' id='btnAjouterParagraphe'/>")
 						.val("+")
 						.click(function(){
 		// Ordre du futur P. ? 
@@ -252,46 +249,86 @@ $(document).ready(function(){
 	// btnAfficherArticles.before("<input type='text' value='Rechercher article'/>");
 
 	// insertion bouton avant paragraphes
-	$("#paragraphes").before(jP);
+	$("#paragraphes").before(btnAjouterParagraphe);
 	// On pourrait cloner avec .clone()
 
-	// insertion champ entrée texte apres bouton 
-	jP.after("<input type='text' />");
-	
-});
+	// insertion champ entrée texte apres bouton
+	btnAjouterParagraphe.after("<input type='text' class='dansBarreEdition'/>");
+
+	$(".dansBarreEdition").wrapAll("<div class='barreEdition'></div>")	
+};
+
+$(document).ready(function(){var lecture = 1;});
 
 $(function() {
-  
-// Fonctiion d'affichage des articles quand bouton cliqué
-$('.menuDeroulant').click(function(){
-	// TODO fonction dejean qui va chercher les titres d'articles et les mets dans une div '.listArticles' selon <li><a id='MenuItem'>Menu Item</a></li>
-	// Bien écrire les id
-	//$(this).next('.menuDeroulant').toggle();
-	$('.nouvelArticle').toggle();
-	$('.listeArticles').toggle();
+	// Dropdown toggle
+	$('.menuDeroulant').click(function(){
+		// TODO fonction dejean qui va chercher les titres d'articles et les mets dans l'ul '.listeArticles' selon <li><a id='MenuItem'>Menu Item</a></li>
+	  $(this).next('.listeArticles').toggle();
+	});
+
+	$(document).click(function(e) {
+	  var target = e.target;
+	  if (!$(target).is('.menuDeroulant') && !$(target).parents().is('.menuDeroulant')) {
+	    $('.listeArticles').hide();
+	}
+
+	    // Affichage de l'article sur lequel on clique
+	  if ($(target).parent().parent().is('.listeArticles')) {
+	  	var titreArticle = target.id;
+	  	$('#relatifAuxArticles').after('<h2 id="titreArticle">' + titreArticle + '</h2>');
+	  	$('#titreArticle').before('<button id="btnLectureEdition" class="ui-state-default ui-corner-all">Passer en mode edition</button>');
+	  	// TODO : Affichage de l'article ayant comme id target.id
+
+	  	}
+
+	  });
+
+	$('body').one("click", "#btnLectureEdition", function(){
+		// passage pour la première fois au mode edition
+		afficherModeEdition();
+		lecture = 0;
+	});
+
+
+	// Action lorsque je clique sur le bouton Nouvel Article
+	$('body').on("click", "#btnAjoutArticle", function(){
+		
+	});
+
+	// Action lorsque je clique sur le bouton Lecture/Edition
+  	$('body').on("click", "#btnLectureEdition", function(){
+	var btnLectEd = $(this);
+	btnLectEd.toggleClass('toggleEditionLecture');
+
+	if (btnLectEd.hasClass('toggleEditionLecture')) {
+		// On passe en mode edition
+		btnLectEd.text("Revenir au mode normal");
+		$(".barreEdition").show();
+		$('#paragraphes span').show();
+		$('#paragraphes textarea').show();
+		lecture = 0;
+	}
+
+	else {
+			// On passe en mode lecture
+			btnLectEd.text("Passer en mode edition");
+			$(".barreEdition").remove();
+			$('#paragraphes span').hide();
+			$("#paragraphes").after('<p>Mon paragraphe</p>');
+			$('#paragraphes textarea').remove();
+			lecture = 1;
+		}
+
+	});
+
+	// // Action lorsque j'appui sur le bouton "Ajouter un paragraphe"
+	// $('body').on("click", "btnAjouterParagraphe", function(){})
+
 });
 
-$(document).click(function(e) {
-	// Gestionnaire d'événements
-
-	// cache le menu déroulant
-  var target = e.target;
-  if (!$(target).is('.menuDeroulant') && !$(target).parents().is('.menuDeroulant')) {
-    $('.listeArticles').hide();
-    $('.nouvelArticle').hide();
-  }
-
-  console.log(target.parent());
-  // Affichage de l'article sur lequel on clique
-  if ($(target).parent().parent().is('.listeArticles')) {
-  	// Affichage de l'article ayant comme id target.id
-  	alert(target.id);
-  }
-});
 
 
-
-});
 
 $(document).ready(function(){
 	// Attention : un clic pour déplacer reste un clic sur un P. (permettant d'éditer) 
@@ -321,6 +358,8 @@ $(document).ready(function(){
 		// Interdit la sélection de texte à la souris
 });
 
+
+
 </script>
 <!-- TODO 
 Télécharger jQuery UI 
@@ -335,25 +374,24 @@ Permettre le "tri" du paragraphe (opération de type glisser-déposer)
 uniquement lorsque l'on se sert de la poignée
 -->
 <body>
-<div>
-<nav>
-<a class="menuDeroulant" href="#" title="afficherArticle">Afficher Article</a>
+<h1>Plateforme de lecture et d'edition d'articles</h1>
+<div id="relatifAuxArticles">
+	<nav>
+		<a class="menuDeroulant" href="#" title="menuDeroulant">Afficher Articles</a>
+		<ul class="listeArticles">
+		<!-- TODO Remplir automatiquement liste d'articles et id-->
+		  <li><a id='article1'>Article 1</a></li>
+		  <li><a id='article2'>Article 2</a></li>
+		  <li><a id='article3'>Article 3</a></li>
+		  <li><a id='article4'>Article 4</a></li>
+		</ul>
+	</nav>
+
 	<div class="nouvelArticle">
 		<input type='textarea' id='titreNouvelArticle' value='Nouvel Article' />
 		<input type='button' id='btnAjoutArticle' value='Ajouter Article' />
 	</div>
-	<!-- TODO : créer listeArticle automatiquement -->
-	<ul class="listeArticles">
-	  <li><a id='menuItem'>Menu Item</a></li>
-	  <li><a href="#">Menu</a></li>
-	  <li><a href="#">Settings</a></li>
-	  <li><a href="#">Search</a></li>
-	</ul>
-</nav>
 </div>
-
-
-<!-- 
-	<div id="paragraphes">
-	</div> -->
+<div id="paragraphes">
+</div>
 </body>
