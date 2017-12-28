@@ -1,19 +1,15 @@
-var lecture = 1;
+// Fichier contenant toutes les interactions sur la page des articles en jquery
 
+
+// Action d'annulation de la modification des paragraphes après un clic sur ESC
 $(document).on(	"keyup",
-								"body",
-								function(leContexe){
-	// console.log(leContexe);
-	// Appui sur ESC 
+				"body",
+				function(leContexe){
+	// Appui sur ESC
 	if(leContexe.key == "Escape" ) {
-		//TODO : parcourir tous les textarea, les annuler -> backend dejean 
-		// Pour chacun d'eux, récupérer le contenu initial 
-		// replacer dans le DOM un P avec ce contenu 
-		// utiliser .each() 
+		// Pour chacun d'eux, récupérer le contenu initial, replacer dans le DOM un P avec ce contenu 
 		$("#paragraphes textarea").each(function(){
-			// Annuler l'édition en cours 
-			// $(this) dénote à chaque itération une référence vers l'un des textarea
-			
+			// Annuler l'édition en cours TODO			
 			var contenuPrecedent = $(this).data("contenu");
 			var metaT = $(this).data(); 
 			var jP = $("<p>").html(contenuPrecedent).data(metaT);
@@ -22,76 +18,73 @@ $(document).on(	"keyup",
 	}
 });
 
+
+// Fonction affichant le mode edition d'un paragraphe
+function affichageEditionParagraphe(thisPar) {
+		var contenuParagraphe = thisPar.html();
+		var metaP =  thisPar.data();
+		var jT = $("<textarea>")
+							.val(contenuParagraphe)
+							.data(metaP);  
+		// insertion du textarea dans le DOM 
+		thisPar.replaceWith(jT);
+		thisPar.focus();
+}
+
+
+// Action lors d'un clic sur un paragraphe
 $(document).on(	"click",
 				"#paragraphes p",
 				function (){
 	if ($("#btnLectureEdition").hasClass('enEdition')){
-	// clic sur un futur P. 
-	var contenuP = $(this).html();
-	var metaP =  $(this).data(); 
-	// préparer le futur textarea
-	var jT = $("<textarea>")
-						.val(contenuP)
-						.data(metaP);  
-
-	// insertion dans le DOM 
-	$(this).replaceWith(jT);
-	}
+		// Passage en mode édition lors du clic sur un paragraphe
+		affichageEditionParagraphe($(this));
+		}
 });
 
+
+// Action lorsque Entree est presse
 $(document).on(	"keydown",
 				"#paragraphes textarea",
 				function(leContexe){
-	// Validation d'une saisie
 	if(leContexe.which == 13 ) {
-		// On prépare le nouveau P.
+		// On prépare le nouveau paragraphe lors de l'appui sur entree
 		var contenuT = $(this).val();
 		var metaT = $(this).data(); 
 		var jP = $("<p>").html(contenuT).data(metaT);
 
-		// On met à jour ses méta-données 
-		// car le contenu a changé
+		// Mise à jour des méta-données
 		jP.data("contenu",contenuT);
 	
-		//On envoie une requete au serveur 
+		// Envoi de requete au serveur 
 		$.getJSON(	"data.php", 
-								{	"action" : "updateP", 
-									"id": metaT.id, 
-									"contenu" : contenuT}, 
-								function (oRep){
+					{"action" : "updateP", 
+					"id": metaT.id, 
+					"contenu" : contenuT}, 
+					function (oRep){
 			if (oRep.feedback!="ok") {
 				alert("Rechargez votre navigateur...");
 			}
 		});
 
-		// On l'insère 
+		// Insertion de la saisie
 		$(this).replaceWith(jP);
 	}
 });
 
-
-// TODO: afficher dans la console les méta-données
-// lors du survol des P.  
+// Action lors du survol des paragraphes  
 $(document).on(	"mouseover",
 				"#paragraphes div p, #paragraphes div textarea",
 				function(){
-	// Survol d'un elt dans le div des p. 
-	// $(this) dénote l'élément manipulé 
-	// On affiche ses méta-données 
+	// Affichage des meta donnees d'un paragraphe dans la console
 	console.log($(this).data());
 });
 
-// TODO: ne pas perdre les méta-données des P. en cours d'édition 
-// TODO : envoyer une requete de mise à jour lors de la modification d'un P. 
-// TODO UX : permettre une annulation des éditions en cours
-// lors de l'appui sur ESC, on annule toutes les éditions
-// en replacant les contenus initiaux dans chaque P. en cours d'édition [besoin éventuel de l'itérateur .each()]
 
-
+// Fonction permettant de passer en mode Edition
 function afficherModeEdition() {
 
-	// Envoyer une requete au serveur pour récupérer les P. 
-	// en base de données 
+	// Envoyer une requete au serveur pour récupérer les P. en bdd
 	$.getJSON(	"data.php",
 							{"action":"getP"},
 							function (oRep){
@@ -101,25 +94,18 @@ function afficherModeEdition() {
 		
 		if (oRep.feedback != "ok") {
 			alert("Erreur, veuillez recharger votre navigateur");
-		} else {
+		} 
+		else {
 			// on les intègre au div des paragraphes 
 			for(i=0;i<oRep.paragraphes.length;i++) {
-				// oRep.paragraphes[i] contient les méta-données
-				// du paragraphe i : id, contenu, ordre 
-				// TODO: insérer les P. 
-				var jP = $("<p>")
-									.html(oRep.paragraphes[i].contenu);
+				// oRep.paragraphes[i] contient les méta-données du paragraphe i : id, contenu, ordre 
+				var jP = $("<p>").html(oRep.paragraphes[i].contenu);
 				// ON change la structure... <div><span><p>
 				var jS = $("<div><span class=\"poignee ui-icon ui-icon-arrow-4\"></span></div>");
 				jS.append(jP);
 				$("#paragraphes").append(jS);
 
-				// TODO: y associer leurs méta-données 
 				jP.data(oRep.paragraphes[i]);
-
-//			jP.data("id",oRep.paragraphes[i].id);
-//			jP.data("contenu",oRep.paragraphes[i].contenu);
-//			jP.data("ordre",oRep.paragraphes[i].ordre);
 			}
 		}
 	}); 
@@ -128,72 +114,57 @@ function afficherModeEdition() {
 	var btnAjouterParagraphe = $("<input type='button' class='dansBarreEdition' id='btnAjouterParagraphe'/>")
 						.val("+")
 						.click(function(){
-		// Ordre du futur P. ? 
-		// ordre du premier des P. actuels - 1
+		// Ordre du futur P. : ordre du premier des P. actuels - 1
 		var jPremier = $("#paragraphes *:first-child");
-		// $("#paragraphes *").first()		
-		// $("#paragraphes *:first-child"); 
-		// ATTENTION AUX PERFORMANCES !
 		var ordreNouveau = jPremier.data("ordre") - 1;
-		// Attention au cas avec '+' : il faut vérifier 
-		// les types des éléments : 
-		// "1" +1  vaut "11"!!
 
-		// Lors du clic sur un bouton, 
-		// On insère le P. dans le DOM 
+		// Lors du clic sur un bouton, on insère le paragraphe dans le DOM
 		var contenu = $(this).next().val();
 		var jP = $("<p>")
-							.html(contenu)
-							.data({	"id" : 0, 
-											"ordre" : ordreNouveau, 
-											"contenu" : contenu });
+						.html(contenu)
+						.data({	"id" : 0, 
+								"ordre" : ordreNouveau, 
+								"contenu" : contenu });
 
 		// ON change la structure... <div><span><p>
 		var jS = $("<div><span class=\"poignee ui-icon ui-icon-arrow-4\"></span></div>");
 		jS.append(jP);
 		$("#paragraphes").prepend(jS);
 
-		// On envoie une req. de création au serveur 
-		// CONTRAINTE : permettre plusieurs ajouts à la fois 
-		// => pas de var. globale !
-
-		// SOL2 : on utilise un appel à $.getJSON
-		// comme jP est dans le scope de la fonction de rappel
-		// On peut s'en servir pour modifier le P. adéquat
-		// jP.html(oRep.id); 
+		// Envoi d'une req. de création au serveur 
 		$.getJSON(	"data.php", 
-								{	"action":"addP",
-									"ordre": ordreNouveau, 
-									"contenu" : contenu}, 
-								function (oRep) {
-			jP.data("id",oRep.id);
-		}
-); 
+					{"action":"addP",
+					"ordre": ordreNouveau, 
+					"contenu" : contenu},
+					function (oRep) {jP.data("id",oRep.id);}
+				);
+
+		affichageEditionParagraphe(jP);
 
 	});
 
-	// // Mise de  la barre de recherche et du bouton 'Search' dans le div menuDeroulant
-	// $("#menuDeroulant").prepend(btnAfficherArticles);			
-
-	// // insertion bouton search avant 
-	// btnAfficherArticles.before("<input type='text' value='Rechercher article'/>");
-
 	// insertion bouton avant paragraphes
 	$("#paragraphes").before(btnAjouterParagraphe);
-	// On pourrait cloner avec .clone()
 
 	// insertion champ entrée texte apres bouton
 	btnAjouterParagraphe.after("<input type='text' class='dansBarreEdition' value='Nouveau Paragraphe'/>");
 
-	$(".dansBarreEdition").wrapAll("<div class='barreEdition'></div>")	
+	$(".dansBarreEdition").wrapAll("<div class='barreEdition'></div>");
+
+	// // Change le css des paragraphes 
+	// $("#paragraphes p").hover(function() {
+ //  		$(this).css("cursor","pointer");
+ //  		$(this).css("border","border:1px solid black");
+ //  		console.log('atchoulm');
+	// });
 };
 
-//$(document).ready(function(){var lecture = 1;});
 
+
+// Fonction de mise en place du menu deroulant
 $(function() {
-	// Dropdown toggle
 	$('.menuDeroulant').click(function(){
-		// TODO fonction dejean qui va chercher les titres d'articles et les mets dans l'ul '.listeArticles' selon <li><a id='MenuItem'>Menu Item</a></li>
+	// TODO fonction dejean qui va chercher les titres d'articles et les mets dans '.listeArticle'
 	  $(this).next('.listeArticles').toggle();
 	});
 
@@ -206,39 +177,39 @@ $(function() {
 	    // Affichage de l'article sur lequel on clique
 	  if ($(target).parent().parent().is('.listeArticles')) {
 	  	var titreArticle = target.id;
-	  	// $('#relatifAuxArticles').after('<h2 id="titreArticle">' + titreArticle + '</h2>');
-	  	// $('#titreArticle').before('<button id="btnLectureEdition" class="ui-state-default ui-corner-all">Passer en mode edition</button>');
-	  	if ($("#titreArticle").length) {$("#titreArticle").text(titreArticle); // S'il y a déjà un article ouvert
+
+	  	if ($("#titreArticle").length) {
+	  		// S'il y a déjà un article ouvert
+	  		$("#titreArticle").text(titreArticle);
 			$("#paragraphes").children().remove();
 			if($(".barreEdition").length) {$(".barreEdition").remove();}
 			$("#btnLectureEdition").text("Passer au mode edition");
+			// TODO : Affichage de l'article ayant comme id target.id
 		}
-		else { // Si aucun article ouvert
+
+		else { 
+			// Si aucun article ouvert
 			$('#relatifAuxArticles').after('<h2 id="titreArticle">' + titreArticle + '</h2>');
 	  		$('#titreArticle').before('<button id="btnLectureEdition" class="ui-state-default ui-corner-all">Passer en mode normal</button>');
 	  		$("#btnLectureEdition").text("Passer au mode edition");
-		}
-	  	// TODO : Affichage de l'article ayant comme id target.id
-
+	  		// TODO : Affichage de l'article ayant comme id target.id
+			}
 	  	}
-
 	  });
-
-	// $('body').one("click", "#btnLectureEdition", function(){
-	// 	// passage pour la première fois au mode edition
-	// 	afficherModeEdition();
-	// });
 
 
 	// Action lorsque je clique sur le bouton Nouvel Article
 	$('body').on("click", "#btnAjoutArticle", function(){
-		// Si on est déjà sur un article
-		if ($("#titreArticle").length) {$("#titreArticle").text($("#titreNouvelArticle").val());
+		if ($("#titreArticle").length) {
+			// Si on est déjà sur un article
+			$("#titreArticle").text($("#titreNouvelArticle").val());
 			$("#btnLectureEdition").addClass($("#btnLectureEdition").attr("class") + ' enEdition nouvelArticle');
 			$("#paragraphes").children().remove();
 			if($(".barreEdition").length) {$(".barreEdition").remove();}
 			$("#btnLectureEdition").text("Revenir au mode normal");
-			afficherModeEdition();}
+			afficherModeEdition();
+		}
+
 		else {
 			$('#relatifAuxArticles').after('<h2 id="titreArticle">' + $("#titreNouvelArticle").val() + '</h2>');
 	  		$('#titreArticle').before('<button id="btnLectureEdition" class="ui-state-default ui-corner-all enEdition nouvelArticle">Passer en mode normal</button>');
@@ -247,10 +218,12 @@ $(function() {
 		}
 	});
 
+
 	// Action lorsque je clique sur le bouton Lecture/Edition
   	$('body').on("click", "#btnLectureEdition", function(){
 	var btnLectEd = $(this);
-	if($('#btnLectureEdition').hasClass("nouvelArticle")){ // on est en présence d'un nouvel article
+	if($('#btnLectureEdition').hasClass("nouvelArticle")){ 
+		// Si on est en présence d'un nouvel article
 		$('#btnLectureEdition').toggleClass('nouvelArticle');
 	}
 
@@ -265,49 +238,33 @@ $(function() {
 	}
 
 	else {
-			// On passe en mode lecture
-			btnLectEd.text("Passer en mode edition");
-			$(".barreEdition").remove();
-			$('#paragraphes span').hide();
-			$("#paragraphes").append('<div><p>Mon paragraphe</p></div>'); // TODO : paragraphes pas encore éditables
-			$('#paragraphes textarea').remove();
-			btnLectEd.toggleClass('enEdition');
+		// On passe en mode lecture
+		btnLectEd.text("Passer en mode edition");
+		$(".barreEdition").remove();
+		$('#paragraphes span').hide();
+		// TODO : paragraphes pas encore éditables
+		$('#paragraphes textarea').remove();
+		btnLectEd.toggleClass('enEdition');
 		}
-
 	});
-
-	// // Action lorsque j'appui sur le bouton "Ajouter un paragraphe"
-	// $('body').on("click", "btnAjouterParagraphe", function(){})
 
 });
 
 
-
-
 $(document).ready(function(){
-	// Attention : un clic pour déplacer reste un clic sur un P. (permettant d'éditer) 
-	// => On change la structure 
-	// 	<div>
-	//		<span>poignee</span>
-	//		<p>contenu</p>
-	//	</div>
-	$("#paragraphes").sortable({	handle: ".poignee", 
-																helper: "clone", 
-																placeholder: "emplacement", 
-																stop: function( event, ui ) {
+	$("#paragraphes").sortable({handle: ".poignee", 
+								helper: "clone", 
+								placeholder: "emplacement", 
+								stop: function( event, ui ) {
 				console.log("id de l'item modifie : ");
 				console.log($("p",ui.item).data("id"));
-
 				console.log("ordre de l'element precedent : ");
-
 				console.log($("p",ui.item.prev()).data("ordre"));
-
 				console.log("ordre de l'element suivant : ");
-				console.log($("p",ui.item.next()).data("ordre"));
-				
-			
-		}
+				console.log($("p",ui.item.next()).data("ordre"));			
+			}
 	});
+
 	$("#paragraphes").disableSelection(); 
-		// Interdit la sélection de texte à la souris
+	// Interdit la sélection de texte à la souris
 });
