@@ -6,7 +6,7 @@ $(document).on(	"keyup",
 	// console.log(leContexe);
 	// Appui sur ESC 
 	if(leContexe.key == "Escape" ) {
-		//TODO : parcourir tous les textarea, les annuler 
+		//TODO : parcourir tous les textarea, les annuler -> backend dejean 
 		// Pour chacun d'eux, récupérer le contenu initial 
 		// replacer dans le DOM un P avec ce contenu 
 		// utiliser .each() 
@@ -110,7 +110,7 @@ function afficherModeEdition() {
 				var jP = $("<p>")
 									.html(oRep.paragraphes[i].contenu);
 				// ON change la structure... <div><span><p>
-				var jS = $("<div><span class=\"poignee ui-icon ui-icon-triangle-2-n-s\"></span></div>");
+				var jS = $("<div><span class=\"poignee ui-icon ui-icon-arrow-4\"></span></div>");
 				jS.append(jP);
 				$("#paragraphes").append(jS);
 
@@ -149,7 +149,7 @@ function afficherModeEdition() {
 											"contenu" : contenu });
 
 		// ON change la structure... <div><span><p>
-		var jS = $("<div><span class=\"poignee ui-icon ui-icon-triangle-2-n-s\"></span></div>");
+		var jS = $("<div><span class=\"poignee ui-icon ui-icon-arrow-4\"></span></div>");
 		jS.append(jP);
 		$("#paragraphes").prepend(jS);
 
@@ -183,7 +183,7 @@ function afficherModeEdition() {
 	// On pourrait cloner avec .clone()
 
 	// insertion champ entrée texte apres bouton
-	btnAjouterParagraphe.after("<input type='text' class='dansBarreEdition'/>");
+	btnAjouterParagraphe.after("<input type='text' class='dansBarreEdition' value='Nouveau Paragraphe'/>");
 
 	$(".dansBarreEdition").wrapAll("<div class='barreEdition'></div>")	
 };
@@ -206,18 +206,28 @@ $(function() {
 	    // Affichage de l'article sur lequel on clique
 	  if ($(target).parent().parent().is('.listeArticles')) {
 	  	var titreArticle = target.id;
-	  	$('#relatifAuxArticles').after('<h2 id="titreArticle">' + titreArticle + '</h2>');
-	  	$('#titreArticle').before('<button id="btnLectureEdition" class="ui-state-default ui-corner-all">Passer en mode edition</button>');
+	  	// $('#relatifAuxArticles').after('<h2 id="titreArticle">' + titreArticle + '</h2>');
+	  	// $('#titreArticle').before('<button id="btnLectureEdition" class="ui-state-default ui-corner-all">Passer en mode edition</button>');
+	  	if ($("#titreArticle").length) {$("#titreArticle").text(titreArticle); // S'il y a déjà un article ouvert
+			$("#paragraphes").children().remove();
+			if($(".barreEdition").length) {$(".barreEdition").remove();}
+			$("#btnLectureEdition").text("Passer au mode edition");
+		}
+		else { // Si aucun article ouvert
+			$('#relatifAuxArticles').after('<h2 id="titreArticle">' + titreArticle + '</h2>');
+	  		$('#titreArticle').before('<button id="btnLectureEdition" class="ui-state-default ui-corner-all">Passer en mode normal</button>');
+	  		$("#btnLectureEdition").text("Passer au mode edition");
+		}
 	  	// TODO : Affichage de l'article ayant comme id target.id
 
 	  	}
 
 	  });
 
-	$('body').one("click", "#btnLectureEdition", function(){
-		// passage pour la première fois au mode edition
-		afficherModeEdition();
-	});
+	// $('body').one("click", "#btnLectureEdition", function(){
+	// 	// passage pour la première fois au mode edition
+	// 	afficherModeEdition();
+	// });
 
 
 	// Action lorsque je clique sur le bouton Nouvel Article
@@ -240,11 +250,9 @@ $(function() {
 	// Action lorsque je clique sur le bouton Lecture/Edition
   	$('body').on("click", "#btnLectureEdition", function(){
 	var btnLectEd = $(this);
-	if(!$('#btnLectureEdition').hasClass("nouvelArticle")){
-		btnLectEd.toggleClass('enEdition');
+	if($('#btnLectureEdition').hasClass("nouvelArticle")){ // on est en présence d'un nouvel article
+		$('#btnLectureEdition').toggleClass('nouvelArticle');
 	}
-	else {$('#btnLectureEdition').toggleClass('nouvelArticle');}
-
 
 	if (!btnLectEd.hasClass('enEdition')) {
 		// On passe en mode edition
@@ -253,6 +261,7 @@ $(function() {
 		$('#paragraphes span').show();
 		$('#paragraphes textarea').show();
 		afficherModeEdition();
+		btnLectEd.toggleClass('enEdition');
 	}
 
 	else {
@@ -260,8 +269,9 @@ $(function() {
 			btnLectEd.text("Passer en mode edition");
 			$(".barreEdition").remove();
 			$('#paragraphes span').hide();
-			$("#paragraphes").after('<p>Mon paragraphe</p>');
+			$("#paragraphes").append('<div><p>Mon paragraphe</p></div>'); // TODO : paragraphes pas encore éditables
 			$('#paragraphes textarea').remove();
+			btnLectEd.toggleClass('enEdition');
 		}
 
 	});

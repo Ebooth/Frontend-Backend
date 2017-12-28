@@ -5,23 +5,23 @@
 body {
   padding: 2em;
 }
+
+/*Menu deroulant*/
 a {
   text-decoration: none;
   color: #fff;
 }
 
-/*.relatifAuxArticles {display: flex;flex-direction:column;}*/
-
-/* Important stuff */
-
 nav {
   position: relative;
 }
+
 .menuDeroulant {
   padding: .5em 1em;
   background: #777;
   border-radius: .2em .2em 0 0;
 }
+.menuDeroulant:hover, .listeArticles li:hover {cursor:pointer; background-color:#bfbfbf;}
 ul.listeArticles {
   display:none;
   position: absolute;
@@ -31,30 +31,43 @@ ul.listeArticles {
   min-width: 12em;
   padding: 0;
   border-radius: 0 0 .2em .2em;
-    li {
-      list-style-type: none;
-      a {
+}
+ul.listeArticles li {list-style-type: none;}
+
+ul.listeArticles a {
         text-decoration: none;
         padding: .5em 1em;
         display: block;
       }
-   }
-}
 
-.relatifAuxArticles {display: flex;
+/*Articles*/
+#relatifAuxArticles {display: flex;
 	flex-direction: column;}
 
-.nouvelArticle {display:flex;}
+
+.nouvelArticle {  margin-top:1em;margin-bottom: 1em;}
 .nouvelArticle :first-child {/*display:none;*/}
 .nouvelArticle :nth-child(2) {/*display:none;*/
 	flex:1;}
+
+#btnAjoutArticle {background: #777;  color:white;  border-radius:6px;}
+#btnAjoutArticle:hover {background: #bfbfbf;  cursor:pointer;}
+
+#btnLectureEdition {background: #777; color:white; margin: 0px;}
+#btnLectureEdition:hover {background: #bfbfbf;cursor:pointer;}
 
 
 #paragraphes p:hover{cursor:pointer;border:1px solid black;}
 textarea{display:block;width:100%;}
 
+/*Paragraphes*/
 #paragraphes div {position:relative;}
-.poignee{position:absolute;left:0px;cursor:move;}
-#paragraphes div {padding-left:20px;}
+.poignee{position:absolute;left:0px;cursor:move;color:black;}
+#paragraphes div {padding-left:20px; 
+  background-color:#e6ffff;
+  min-height: 25%;}
+
+#btnAjouterParagraphe {background: #777; color:white;}
+#btnAjouterParagraphe:hover {cursor: pointer; background: #bfbfbf;}
 
 .emplacement{background-color:lightgrey;border:1px solid black;height:25px;width:100%;}
